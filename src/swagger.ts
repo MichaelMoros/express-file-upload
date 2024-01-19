@@ -1,5 +1,6 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 
+
 const options = {
   swaggerDefinition: {
     openapi: '3.0.0',
@@ -9,8 +10,10 @@ const options = {
       description: 'Documentation for Photo API',
     },
   },
-  apis: ['*.json'], 
+  apis: [`./src/*.json`]
 };
 
+
+// FIX:ME docs works locally but not on prod
 const specs = swaggerJSDoc(options);
 export default specs;

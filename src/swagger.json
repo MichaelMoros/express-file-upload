@@ -1,0 +1,326 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Photo API Documentation",
+      "version": "1.0.0",
+      "description": "Documentation for Photo API"
+    },
+    "tags": [
+        {
+          "name": "Photo",
+          "description": "Operations related to photo documents"
+        },
+        {
+          "name": "Tags",
+          "description": "Operations related to tags"
+        }
+    ],
+    "paths": {
+      "/api/photos/random": {
+        "get": {
+          "tags": ["Photo"],
+          "summary": "Get random photo documents",
+          "description": "Retrieve three(3) random photo documents.",
+          "responses": {
+            "200": {
+              "description": "Successful response with three(3) photo documents.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "_id": { "type": "string", "description": "The unique identifier for the photo in the database." },
+                      "name": { "type": "string", "description": "The name of the uploaded file." },
+                      "src": { "type": "string", "description": "The public URL of the uploaded file." },
+                      "description": { "type": "string", "description": "The user-provided description for the photo." },
+                      "createdAt": { "type": "string", "description": "The timestamp when the photo was created." },
+                      "tags": { "type": "array", "items": { "type": "string" }, "description": "An array of tags associated with the photo." }
+                    }
+                  }
+                }
+              }
+            },
+            "500": { "description": "Internal server error." }
+          }
+        },
+        "post": {
+          "tags": ["Photo"],
+          "summary": "Get random photo documents based on seenIds",
+          "description": "Retrieve three(3) random photo documents that have not been seen before. The endpoint accepts a payload with an array of MongoDB ObjectIds (`seenIds`) and returns random photos that are not in the provided `seenIds` array.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "seenIds": {
+                      "type": "array",
+                      "items": { "type": "string", "format": "objectId" },
+                      "description": "An array of MongoDB ObjectIds representing photos that have been seen. The response will include random photos not in this array."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful response with three(3) unseen photo documents. If no unseen photos are available, an empty array will be returned.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string", "description": "The unique identifier for the photo in the database." },
+                        "name": { "type": "string", "description": "The name of the uploaded file." },
+                        "src": { "type": "string", "description": "The public URL of the uploaded file." },
+                        "description": { "type": "string", "description": "The user-provided description for the photo." },
+                        "createdAt": { "type": "string", "description": "The timestamp when the photo was created." },
+                        "tags": { "type": "array", "items": { "type": "string" }, "description": "An array of tags associated with the photo." }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "description": "Bad Request. Invalid payload (e.g., invalid MongoDB ObjectId)." },
+            "500": { "description": "Internal server error." }
+          }
+        }
+      },
+      "/api/photos/upload": {
+        "post": {
+          "tags": ["Photo"],
+          "summary": "Upload a file with description and tag/s",
+          "description": "Upload a file along with required description and tag or tags. Checks payload for specific constraints and returns a new Photo Id.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "format": "binary",
+                      "description": "The file to upload."
+                    },
+                    "description": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 32,
+                      "description": "The description for the uploaded file (2-32 characters)."
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16
+                      },
+                      "description": "An array of tags (1-16 characters each with a maximum of 5 items)."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful response with the new photo document.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "_id": { "type": "string", "description": "The unique identifier for the photo in the database." },
+                      "name": { "type": "string", "description": "The name of the uploaded file." },
+                      "src": { "type": "string", "description": "The public URL of the uploaded file." },
+                      "description": { "type": "string", "description": "The user-provided description for the photo." },
+                      "createdAt": { "type": "string", "description": "The timestamp when the photo was created." },
+                      "tags": { "type": "array", "items": { "type": "string" }, "description": "An array of tags associated with the photo." }
+                    }
+                  }
+                }
+              }
+            },
+            "404": { "description": "Not Found. Validation error for description or tags." },
+            "500": { "description": "Internal server error." }
+          }
+        }
+      },
+      "/api/photos/{photoId}": {
+        "get": {
+          "tags": ["Photo"],
+          "summary": "Get a specific photo document by ID",
+          "description": "Retrieve details of a specific photo document based on the provided `photoId`. The endpoint checks if the `photoId` parameter is a valid MongoDB ObjectId.",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "photoId",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "objectId"
+              },
+              "description": "The unique identifier for the photo in the database."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful response with details of the requested photo document.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "_id": { "type": "string", "description": "The unique identifier for the photo in the database." },
+                      "name": { "type": "string", "description": "The name of the uploaded file." },
+                      "src": { "type": "string", "description": "The public URL of the uploaded file." },
+                      "description": { "type": "string", "description": "The user-provided description for the photo." },
+                      "createdAt": { "type": "string", "description": "The timestamp when the photo was created." },
+                      "tags": { "type": "array", "items": { "type": "string" }, "description": "An array of tags associated with the photo." }
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "description": "Bad Request. Invalid `photoId` parameter (not a valid MongoDB ObjectId)." },
+            "404": { "description": "Not Found. Photo with the specified `photoId` not found." },
+            "500": { "description": "Internal server error." }
+          }
+        }
+      },
+      "/tags": {
+        "get": {
+          "tags": ["Tags"],
+          "summary": "Get tags with optional date filter",
+          "description": "Retrieve tags based on an optional date filter. If the property is not set, it is automatically set to 24 hours ago from the current time.",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "startDate",
+              "schema": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Optional. The start date to filter tags. Must be in ISO format."
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful response with ten(10) tags.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string", "description": "The unique identifier for the tag in the database." },
+                        "name": { "type": "string", "description": "The name of the tag set by the user." },
+                        "createdAt": { "type": "string", "description": "The timestamp when the tag was created." },
+                        "tagCount": { "type": "number", "description": "The number of times the tag is linked to a specific document." }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": { "description": "Not Found. No tags found for the specified date or invalid date format." },
+            "500": { "description": "Internal server error." }
+          }
+        }
+      },
+      "/api/tags/{tag}": {
+        "get": {
+          "tags": ["Tags"],
+          "summary": "Get photo documents by tag",
+          "description": "Retrieve photo documents based on the provided `tag`. Optionally, you can use query parameters `skip` to skip a number of results and `order` to specify the order of results.",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "tag",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "description": "The tag to filter photo documents.",
+                "pattern": "^[a-zA-Z0-9_-]+$"
+              },
+              "description": "The tag to filter photo documents."
+            },
+            {
+              "in": "query",
+              "name": "skip",
+              "schema": {
+                "type": "integer",
+                "description": "Optional. Number of results to skip."
+              }
+            },
+            {
+              "in": "query",
+              "name": "order",
+              "schema": {
+                "type": "string",
+                "enum": ["oldest-first", "newest-first"],
+                "description": "Optional. Order of results. Choose from 'oldest-first' or 'newest-first'."
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful response with two(2) photo documents matching the specified tag.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string", "description": "The unique identifier for the photo in the database." },
+                        "name": { "type": "string", "description": "The name of the uploaded file." },
+                        "src": { "type": "string", "description": "The public URL of the uploaded file." },
+                        "description": { "type": "string", "description": "The user-provided description for the photo." },
+                        "createdAt": { "type": "string", "description": "The timestamp when the photo was created." },
+                        "tags": { "type": "array", "items": { "type": "string" }, "description": "An array of tags associated with the photo." }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": { "description": "Not Found. Photo documents with the specified tag not found or invalid tag format." },
+            "500": { "description": "Internal server error." }
+          }
+        }
+      },
+      "/{any}": {
+        "x-express-openapi-disable-coercion": true,
+        "parameters": [
+          {
+            "in": "path",
+            "name": "any",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Catch-all endpoint for routes that don't exist."
+          }
+        ],
+        "get": {
+          "tags": ["Catch-All"],
+          "summary": "Endpoint doesn't exist",
+          "description": "Catch-all endpoint for routes that don't exist. Responds with a 'Not Found' exception.",
+          "responses": {
+            "404": {
+              "description": "Not Found. Endpoint doesn't exist."
+            }
+          }
+        }
+      }
+    }
+}
+  
